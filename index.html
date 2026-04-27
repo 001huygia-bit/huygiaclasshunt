@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassHunt — Find Your Instructor</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f5f5f5;min-height:100vh}
+.app{max-width:420px;margin:0 auto;min-height:100vh;background:#f5f5f5}
+.header{background:#111;padding:12px 16px 0;position:sticky;top:0;z-index:100}
+.logo{font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;padding-bottom:12px}
+.logo em{color:#C8F04D;font-style:normal}
+.day-strip{display:flex;overflow-x:auto;scrollbar-width:none;gap:0}
+.day-strip::-webkit-scrollbar{display:none}
+.day-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:8px 14px 10px;cursor:pointer;border-bottom:2px solid transparent;min-width:52px}
+.day-btn.active{border-bottom:2px solid #C8F04D}
+.day-num{font-size:16px;font-weight:700;color:#fff}
+.day-btn.active .day-num{color:#C8F04D}
+.day-label{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:0.5px;margin-top:1px}
+.day-btn.active .day-label{color:#C8F04D}
+.filters{background:#fff;border-bottom:0.5px solid #e8e8e8;padding:10px 12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.fchip{display:flex;align-items:center;gap:5px;background:#f5f5f5;border:0.5px solid #e0e0e0;border-radius:20px;padding:6px 12px;font-size:12px;color:#444;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s}
+.fchip.active{background:#111;border-color:#111;color:#fff}
+.search-bar{background:#fff;padding:8px 12px;border-bottom:0.5px solid #ebebeb}
+.search-inner{display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:10px;padding:8px 12px}
+.search-inner input{background:none;border:none;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:#111;width:100%}
+.search-inner input::placeholder{color:#bbb}
+.classes-list{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.class-row{background:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;border:0.5px solid #ebebeb;transition:transform 0.1s}
+.class-row:active{transform:scale(0.98)}
+.avatar{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff}
+.class-info{flex:1;min-width:0}
+.class-name{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.instructor-name{font-size:12px;color:#888;margin-bottom:4px}
+.class-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meta-tag{font-size:10px;color:#999;display:flex;align-items:center;gap:3px}
+.gym-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px}
+.book-btn{background:#111;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0}
+.section-label{font-size:11px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:0.5px;padding:4px 0 4px;margin-top:4px}
+.empty{text-align:center;padding:48px 24px;color:#ccc;font-size:13px}
+.profile-wrap{background:#f5f5f5;min-height:100vh}
+.prof-hero{background:#111;height:200px;display:flex;align-items:flex-end;padding:0 16px 16px;position:relative}
+.prof-avatar{width:72px;height:72px;border-radius:50%;border:3px solid #C8F04D;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
+.prof-hero-info{margin-left:12px}
+.prof-name{font-size:20px;font-weight:700;color:#fff}
+.prof-gym{font-size:11px;color:#888;margin-top:2px}
+.back-btn{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 12px;font-size:11px;color:#fff;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif}
+.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e8e8e8}
+.pstat{background:#fff;padding:14px 8px;text-align:center}
+.pstat-val{font-size:18px;font-weight:700;color:#111}
+.pstat-lbl{font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px}
+.prof-section{background:#fff;margin:8px 12px;border-radius:14px;padding:14px}
+.prof-sec-title{font-size:11px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.tag-wrap{display:flex;gap:6px;flex-wrap:wrap}
+.ptag{font-size:11px;padding:5px 12px;border-radius:20px;background:#f5f5f5;color:#555;border:0.5px solid #e8e8e8}
+.ptag.hl{background:#f0fce8;color:#3a7a0a;border-color:#c8f04d55}
+.branch-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid #f0f0f0}
+.branch-row:last-child{border:none}
+.bdot{width:6px;height:6px;border-radius:50%;background:#C8F04D;flex-shrink:0}
+.branch-name{font-size:12px;color:#444}
+.branch-gym{font-size:11px;color:#bbb;margin-left:auto}
+.review-empty{padding:20px;text-align:center;background:#fafafa;border-radius:10px}
+.review-empty-txt{font-size:12px;color:#ccc;margin-bottom:8px}
+.review-cta{font-size:12px;color:#3a7a0a;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const DATES=["27/4","28/4","29/4","30/4","1/5","2/5","3/5"];
+const COLORS=["#1a2744","#1b3a2e","#2e1a44","#3a1a1a","#1a3a3a","#2e2a1a","#1a1a3a","#2a1a2e","#1a2a1a","#3a2a1a","#0f2233","#2a1533","#1a331a","#332a1a","#1a1a33","#2a331a","#331a2a","#0d1f1f","#1f0d1f","#1f1f0d"];
+const TYPE_COLORS={"BodyPump":{bg:"#fff3e0",color:"#e65100"},"BodyCombat":{bg:"#fce4ec",color:"#c62828"},"Zumba":{bg:"#e8f5e9",color:"#2e7d32"},"BodyBalance":{bg:"#e3f2fd",color:"#1565c0"},"BodyJam":{bg:"#f3e5f5",color:"#6a1b9a"},"Dance":{bg:"#fff8e1",color:"#f57f17"},"Cycling":{bg:"#e0f7fa",color:"#00695c"},"HIIT":{bg:"#fbe9e7",color:"#bf360c"},"Pilates":{bg:"#f1f8e9",color:"#33691e"},"default":{bg:"#f5f5f5",color:"#555"}};
+function typeColor(cls){
+  if(cls.includes("Pump"))return TYPE_COLORS["BodyPump"];
+  if(cls.includes("Combat"))return TYPE_COLORS["BodyCombat"];
+  if(cls.includes("Zumba"))return TYPE_COLORS["Zumba"];
+  if(cls.includes("Balance"))return TYPE_COLORS["BodyBalance"];
+  if(cls.includes("Jam")||cls.includes("Dance")||cls.includes("Jazz"))return TYPE_COLORS["Dance"];
+  if(cls.includes("Ride")||cls.includes("RPM")||cls.includes("Spin")||cls.includes("Cycle"))return TYPE_COLORS["Cycling"];
+  if(cls.includes("HIIT")||cls.includes("Bums")||cls.includes("Core"))return TYPE_COLORS["HIIT"];
+  if(cls.includes("Pilates"))return TYPE_COLORS["Pilates"];
+  return TYPE_COLORS["default"];
+}
+const allClasses=[
+  {day:0,time:"08:30",cls:"Body Combat",instructor:"MI",branch:"Vivo City",gym:"California Fitness"},
+  {day:0,time:"09:45",cls:"BodyPump",instructor:"HOANG",branch:"Vivo City",gym:"California Fitness"},
+  {day:0,time:"11:00",cls:"Zumba",instructor:"HOA",branch:"Vivo City",gym:"California Fitness"},
+  {day:0,time:"14:30",cls:"Classical Dance",instructor:"JENNY",branch:"Vivo City",gym:"California Fitness"},
+  {day:0,time:"17:00",cls:"Pop Dance",instructor:"MICHELLE",branch:"Vivo City",gym:"California Fitness"},
+  {day:0,time:"18:10",cls:"BodyPump",instructor:"CRISTY",branch:"Vivo City",gym:"California Fitness"},
+  {day:0,time:"19:20",cls:"Body Combat",instructor:"HAI",branch:"Vivo City",gym:"California Fitness"},
+  {day:1,time:"08:30",cls:"Belly Dance",instructor:"LYLA",branch:"Vivo City",gym:"California Fitness"},
+  {day:1,time:"09:45",cls:"BodyPump",instructor:"LYLA",branch:"Vivo City",gym:"California Fitness"},
+  {day:1,time:"17:00",cls:"Body Balance",instructor:"KUN",branch:"Vivo City",gym:"California Fitness"},
+  {day:1,time:"18:10",cls:"Bums N Tums",instructor:"HAI",branch:"Vivo City",gym:"California Fitness"},
+  {day:1,time:"19:20",cls:"BodyJam",instructor:"MIE",branch:"Vivo City",gym:"California Fitness"},
+  {day:2,time:"08:30",cls:"Body Combat",instructor:"HAI",branch:"Vivo City",gym:"California Fitness"},
+  {day:2,time:"09:45",cls:"BodyPump",instructor:"GENNIE",branch:"Vivo City",gym:"California Fitness"},
+  {day:2,time:"11:00",cls:"Zumba",instructor:"KIRAN",branch:"Vivo City",gym:"California Fitness"},
+  {day:2,time:"17:00",cls:"Pop Dance",instructor:"HOANG",branch:"Vivo City",gym:"California Fitness"},
+  {day:2,time:"18:10",cls:"BodyPump",instructor:"HOANG",branch:"Vivo City",gym:"California Fitness"},
+  {day:2,time:"19:20",cls:"Cali Stomp",instructor:"MIA",branch:"Vivo City",gym:"California Fitness"},
+  {day:3,time:"08:30",cls:"Body Combat",instructor:"SUSAN",branch:"Vivo City",gym:"California Fitness"},
+  {day:3,time:"09:45",cls:"BodyPump",instructor:"TRI",branch:"Vivo City",gym:"California Fitness"},
+  {day:3,time:"17:00",cls:"Cali Stomp",instructor:"PINE",branch:"Vivo City",gym:"California Fitness"},
+  {day:3,time:"18:10",cls:"Body Combat",instructor:"KY",branch:"Vivo City",gym:"California Fitness"},
+  {day:3,time:"19:20",cls:"BodyPump",instructor:"LINH",branch:"Vivo City",gym:"California Fitness"},
+  {day:4,time:"09:45",cls:"Zumba",instructor:"KIRAN",branch:"Vivo City",gym:"California Fitness"},
+  {day:4,time:"17:00",cls:"Zumba",instructor:"HOA",branch:"Vivo City",gym:"California Fitness"},
+  {day:4,time:"18:10",cls:"Body Combat",instructor:"LIAM",branch:"Vivo City",gym:"California Fitness"},
+  {day:4,time:"19:20",cls:"BodyPump",instructor:"TRI",branch:"Vivo City",gym:"California Fitness"},
+  {day:5,time:"09:45",cls:"Zumba",instructor:"KY",branch:"Vivo City",gym:"California Fitness"},
+  {day:5,time:"17:00",cls:"BodyPump",instructor:"LIAM",branch:"Vivo City",gym:"California Fitness"},
+  {day:5,time:"18:10",cls:"Cali Stomp",instructor:"LIAM",branch:"Vivo City",gym:"California Fitness"},
+  {day:5,time:"19:20",cls:"Body Balance",instructor:"PINE",branch:"Vivo City",gym:"California Fitness"},
+  {day:6,time:"11:00",cls:"Zumba",instructor:"HOA",branch:"Vivo City",gym:"California Fitness"},
+  {day:6,time:"17:00",cls:"BodyJam",instructor:"MIE",branch:"Vivo City",gym:"California Fitness"},
+  {day:6,time:"19:20",cls:"Body Combat",instructor:"MIA",branch:"Vivo City",gym:"California Fitness"},
+  {day:0,time:"08:30",cls:"BodyPump",instructor:"HIEU",branch:"Landmark 81",gym:"California Fitness"},
+  {day:0,time:"09:45",cls:"Classical Dance",instructor:"JENNY",branch:"Landmark 81",gym:"California Fitness"},
+  {day:0,time:"11:00",cls:"Zumba",instructor:"KIRAN",branch:"Landmark 81",gym:"California Fitness"},
+  {day:0,time:"17:00",cls:"Zumba",instructor:"KIRAN",branch:"Landmark 81",gym:"California Fitness"},
+  {day:0,time:"18:10",cls:"BodyPump",instructor:"GENNIE",branch:"Landmark 81",gym:"California Fitness"},
+  {day:0,time:"19:20",cls:"Body Combat",instructor:"SUE",branch:"Landmark 81",gym:"California Fitness"},
+  {day:1,time:"09:45",cls:"Zumba",instructor:"BIRDY",branch:"Landmark 81",gym:"California Fitness"},
+  {day:1,time:"12:15",cls:"Body Combat",instructor:"HENRY",branch:"Landmark 81",gym:"California Fitness"},
+  {day:1,time:"17:00",cls:"Zumba",instructor:"KIRAN",branch:"Landmark 81",gym:"California Fitness"},
+  {day:1,time:"18:10",cls:"Body Combat",instructor:"DENIS",branch:"Landmark 81",gym:"California Fitness"},
+  {day:1,time:"19:20",cls:"BodyPump",instructor:"DENIS",branch:"Landmark 81",gym:"California Fitness"},
+  {day:2,time:"08:30",cls:"Body Balance",instructor:"HIEU",branch:"Landmark 81",gym:"California Fitness"},
+  {day:2,time:"09:45",cls:"Sexy Dance",instructor:"TT",branch:"Landmark 81",gym:"California Fitness"},
+  {day:2,time:"18:10",cls:"Body Combat",instructor:"KEVIN",branch:"Landmark 81",gym:"California Fitness"},
+  {day:2,time:"19:20",cls:"Zumba",instructor:"KIRAN",branch:"Landmark 81",gym:"California Fitness"},
+  {day:3,time:"11:00",cls:"BodyPump",instructor:"BENY",branch:"Landmark 81",gym:"California Fitness"},
+  {day:3,time:"18:10",cls:"Body Combat",instructor:"RICHIO",branch:"Landmark 81",gym:"California Fitness"},
+  {day:3,time:"19:20",cls:"BodyJam",instructor:"JASON",branch:"Landmark 81",gym:"California Fitness"},
+  {day:4,time:"08:30",cls:"Body Balance",instructor:"PIN",branch:"Landmark 81",gym:"California Fitness"},
+  {day:4,time:"17:00",cls:"BodyPump",instructor:"NGAN",branch:"Landmark 81",gym:"California Fitness"},
+  {day:4,time:"18:10",cls:"Cali Stomp",instructor:"DEMI",branch:"Landmark 81",gym:"California Fitness"},
+  {day:5,time:"09:45",cls:"BodyPump",instructor:"KYO",branch:"Landmark 81",gym:"California Fitness"},
+  {day:5,time:"11:00",cls:"Body Combat",instructor:"HENRY",branch:"Landmark 81",gym:"California Fitness"},
+  {day:5,time:"17:10",cls:"Pop Dance",instructor:"YU",branch:"Landmark 81",gym:"California Fitness"},
+  {day:5,time:"18:10",cls:"Body Combat",instructor:"KY",branch:"Landmark 81",gym:"California Fitness"},
+  {day:6,time:"09:45",cls:"BodyJam",instructor:"BOJ",branch:"Landmark 81",gym:"California Fitness"},
+  {day:6,time:"17:00",cls:"Body Combat",instructor:"BOJ",branch:"Landmark 81",gym:"California Fitness"},
+  {day:0,time:"17:30",cls:"BodyPump",instructor:"Denis",branch:"Thanh Thai",gym:"Citigym"},
+  {day:0,time:"18:45",cls:"Body Balance",instructor:"Nicky",branch:"Thanh Thai",gym:"Citigym"},
+  {day:1,time:"10:00",cls:"BodyStep",instructor:"Edwin",branch:"Thanh Thai",gym:"Citigym"},
+  {day:1,time:"17:30",cls:"BodyPump",instructor:"Khoa",branch:"Thanh Thai",gym:"Citigym"},
+  {day:1,time:"18:45",cls:"BodyPump",instructor:"Khoa",branch:"Thanh Thai",gym:"Citigym"},
+  {day:1,time:"20:00",cls:"Bums N Tums",instructor:"Winny",branch:"Thanh Thai",gym:"Citigym"},
+  {day:2,time:"11:10",cls:"Body Combat",instructor:"Khoa",branch:"Thanh Thai",gym:"Citigym"},
+  {day:2,time:"17:30",cls:"BodyPump",instructor:"Hero",branch:"Thanh Thai",gym:"Citigym"},
+  {day:2,time:"20:00",cls:"BodyPump",instructor:"Kylie",branch:"Thanh Thai",gym:"Citigym"},
+  {day:3,time:"10:00",cls:"Les Mills Core",instructor:"Bella",branch:"Thanh Thai",gym:"Citigym"},
+  {day:3,time:"17:30",cls:"BodyPump",instructor:"Nin'G",branch:"Thanh Thai",gym:"Citigym"},
+  {day:3,time:"18:45",cls:"Body Combat",instructor:"Nin'G",branch:"Thanh Thai",gym:"Citigym"},
+  {day:5,time:"10:00",cls:"BodyPump",instructor:"Pin",branch:"Thanh Thai",gym:"Citigym"},
+  {day:5,time:"11:10",cls:"Body Balance",instructor:"Pin",branch:"Thanh Thai",gym:"Citigym"},
+  {day:5,time:"17:30",cls:"BodyPump",instructor:"Khoa",branch:"Thanh Thai",gym:"Citigym"},
+  {day:6,time:"10:00",cls:"BodyJam",instructor:"Kai",branch:"Thanh Thai",gym:"Citigym"},
+  {day:6,time:"16:15",cls:"Zumba",instructor:"Louis",branch:"Thanh Thai",gym:"Citigym"},
+  {day:6,time:"17:30",cls:"Body Combat",instructor:"Sam",branch:"Thanh Thai",gym:"Citigym"},
+  {day:0,time:"10:00",cls:"Citi Dance",instructor:"Bo",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:0,time:"17:45",cls:"Body Combat",instructor:"Winny",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:0,time:"19:00",cls:"BodyPump",instructor:"Winny",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:1,time:"17:45",cls:"BodyPump",instructor:"Nin'G",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:1,time:"19:00",cls:"BodyPump",instructor:"Nghi",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:1,time:"20:15",cls:"BodyJam",instructor:"Edwin",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:2,time:"10:00",cls:"BodyPump",instructor:"Nin'G",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:2,time:"17:45",cls:"BodyPump",instructor:"Rika",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:2,time:"20:15",cls:"Body Combat",instructor:"Edwin",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:3,time:"10:00",cls:"Zumba",instructor:"Rachel",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:3,time:"17:45",cls:"BodyPump",instructor:"Nicky",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:3,time:"19:00",cls:"Body Combat",instructor:"Winny",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:5,time:"10:00",cls:"Body Combat",instructor:"Sam",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:5,time:"11:10",cls:"Citi Dance",instructor:"Kai",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:5,time:"19:00",cls:"Zumba",instructor:"Bon",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:6,time:"10:00",cls:"BodyPump",instructor:"Kylie",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:6,time:"11:10",cls:"Body Combat",instructor:"Kent",branch:"Van Hanh Mall",gym:"Citigym"},
+  {day:6,time:"20:15",cls:"JazzFunk",instructor:"Kai",branch:"Van Hanh Mall",gym:"Citigym"},
+];
+const instrData={};
+allClasses.forEach(c=>{
+  const k=c.instructor.toLowerCase();
+  if(!instrData[k])instrData[k]={name:c.instructor,branches:new Set(),classes:new Set(),gyms:new Set()};
+  instrData[k].branches.add(c.branch);
+  instrData[k].classes.add(c.cls);
+  instrData[k].gyms.add(c.gym);
+});
+const colorMap={};
+Object.keys(instrData).forEach((k,i)=>{colorMap[k]=COLORS[i%COLORS.length];});
+function initials(n){return n.slice(0,2).toUpperCase();}
+let activeDay=0,activeGym="",activeCls="",searchQ="",view="main",activeInstr=null;
+const GYM_OPTS=["California Fitness","Citigym"];
+const CLS_OPTS=["BodyPump","Body Combat","Zumba","Body Balance","Dance","Cycling"];
+function getFiltered(){
+  return allClasses.filter(c=>{
+    if(c.day!==activeDay)return false;
+    if(activeGym&&c.gym!==activeGym)return false;
+    if(activeCls){
+      const map={"BodyPump":"pump","Body Combat":"combat","Zumba":"zumba","Body Balance":"balance","Dance":"dance,jam,jazz","Cycling":"ride,rpm,spin,cycle"};
+      const kws=(map[activeCls]||activeCls.toLowerCase()).split(',');
+      if(!kws.some(kw=>c.cls.toLowerCase().includes(kw)))return false;
+    }
+    if(searchQ&&!c.instructor.toLowerCase().includes(searchQ.toLowerCase())&&!c.cls.toLowerCase().includes(searchQ.toLowerCase()))return false;
+    return true;
+  }).sort((a,b)=>a.time.localeCompare(b.time));
+}
+function rowHTML(c){
+  const k=c.instructor.toLowerCase();
+  const col=colorMap[k]||"#333";
+  const tc=typeColor(c.cls);
+  const gymBg=c.gym==="Citigym"?"#e3f2fd":"#fff3e0";
+  const gymColor=c.gym==="Citigym"?"#1565c0":"#e65100";
+  return`<div class="class-row" data-instr="${c.instructor}">
+    <div class="avatar" style="background:${col}">${initials(c.instructor)}</div>
+    <div class="class-info">
+      <div class="class-name" style="color:${tc.color}">${c.cls}</div>
+      <div class="instructor-name">${c.instructor}</div>
+      <div class="class-meta">
+        <span class="meta-tag">⏰ ${c.time}</span>
+        <span class="meta-tag">📍 ${c.branch}</span>
+        <span class="gym-badge" style="background:${gymBg};color:${gymColor}">${c.gym==="Citigym"?"Citi":"Cali"}</span>
+      </div>
+    </div>
+    <button class="book-btn">Book</button>
+  </div>`;
+}
+function section(label,items){
+  if(!items.length)return'';
+  return`<div class="section-label">${label}</div>${items.map(rowHTML).join('')}`;
+}
+function renderMain(){
+  const rows=getFiltered();
+  const morning=rows.filter(r=>r.time<"12:00");
+  const afternoon=rows.filter(r=>r.time>="12:00"&&r.time<"17:00");
+  const evening=rows.filter(r=>r.time>="17:00");
+  return`<div class="header">
+    <div class="logo">class<em>hunt</em></div>
+    <div class="day-strip" id="dayStrip">
+      ${DAYS.map((d,i)=>`<div class="day-btn ${i===activeDay?'active':''}" data-day="${i}">
+        <div class="day-num">${DATES[i].split('/')[0]}</div>
+        <div class="day-label">${d}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="filters" id="filterRow">
+    ${GYM_OPTS.map(g=>`<div class="fchip ${activeGym===g?'active':''}" data-gym="${g}">${g}</div>`).join('')}
+    ${CLS_OPTS.map(c=>`<div class="fchip ${activeCls===c?'active':''}" data-cls="${c}">${c}</div>`).join('')}
+  </div>
+  <div class="search-bar">
+    <div class="search-inner">
+      <span style="color:#bbb;font-size:14px">🔍</span>
+      <input id="sq" type="text" placeholder="Search instructor or class…" value="${searchQ}">
+    </div>
+  </div>
+  <div class="classes-list" id="classList">
+    ${rows.length===0?'<div class="empty">No classes found for this day.</div>':''}
+    ${section("Morning",morning)}
+    ${section("Afternoon",afternoon)}
+    ${section("Evening",evening)}
+  </div>`;
+}
+function renderProfile(name){
+  const k=name.toLowerCase();
+  const d=instrData[k];
+  if(!d)return'';
+  const col=colorMap[k]||"#333";
+  const branches=[...d.branches];
+  const classes=[...d.classes];
+  const gyms=[...d.gyms];
+  return`<div class="profile-wrap">
+    <div class="prof-hero" style="background:${col}">
+      <button class="back-btn" id="backBtn">← Back</button>
+      <div class="prof-avatar" style="background:${col}">${initials(name)}</div>
+      <div class="prof-hero-info">
+        <div class="prof-name">${name}</div>
+        <div class="prof-gym">${gyms.join(' · ')}</div>
+      </div>
+    </div>
+    <div class="prof-stats">
+      <div class="pstat"><div class="pstat-val">${branches.length}</div><div class="pstat-lbl">Branches</div></div>
+      <div class="pstat"><div class="pstat-val">${classes.length}</div><div class="pstat-lbl">Class types</div></div>
+      <div class="pstat"><div class="pstat-val">—</div><div class="pstat-lbl">Reviews</div></div>
+    </div>
+    <div class="prof-section">
+      <div class="prof-sec-title">Classes taught</div>
+      <div class="tag-wrap">${classes.map(c=>`<span class="ptag hl">${c}</span>`).join('')}</div>
+    </div>
+    <div class="prof-section">
+      <div class="prof-sec-title">Branches</div>
+      ${branches.map(b=>`<div class="branch-row"><div class="bdot"></div><div class="branch-name">${b}</div><div class="branch-gym">${gyms[0]}</div></div>`).join('')}
+    </div>
+    <div class="prof-section">
+      <div class="prof-sec-title">Member reviews</div>
+      <div class="review-empty">
+        <div class="review-empty-txt">No reviews yet</div>
+        <div class="review-cta">+ Be the first to review ${name}</div>
+      </div>
+    </div>
+  </div>`;
+}
+function render(){
+  const app=document.getElementById('app');
+  if(view==='main'){
+    app.innerHTML=renderMain();
+    document.getElementById('dayStrip').addEventListener('click',e=>{
+      const btn=e.target.closest('.day-btn');if(!btn)return;
+      activeDay=parseInt(btn.dataset.day);render();
+    });
+    document.getElementById('filterRow').addEventListener('click',e=>{
+      const chip=e.target.closest('.fchip');if(!chip)return;
+      if(chip.dataset.gym)activeGym=activeGym===chip.dataset.gym?'':chip.dataset.gym;
+      if(chip.dataset.cls)activeCls=activeCls===chip.dataset.cls?'':chip.dataset.cls;
+      render();
+    });
+    document.getElementById('sq').addEventListener('input',e=>{searchQ=e.target.value;render();});
+    document.getElementById('classList').addEventListener('click',e=>{
+      const row=e.target.closest('.class-row');if(!row)return;
+      if(e.target.classList.contains('book-btn'))return;
+      activeInstr=row.dataset.instr;view='profile';render();
+    });
+  }else{
+    app.innerHTML=renderProfile(activeInstr);
+    document.getElementById('backBtn').addEventListener('click',()=>{view='main';render();});
+  }
+}
+render();
+</script>
+</body>
+</html>
